@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: ajg-erp-research
+
+server:
+  port: 8080
