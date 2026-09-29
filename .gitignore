@@ -1,0 +1,16 @@
+# .NET build output
+**/bin/
+**/obj/
+*.user
+*.suo
+
+# Local configuration
+appsettings.Development.json
+.env
+
+# IDE and OS
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
