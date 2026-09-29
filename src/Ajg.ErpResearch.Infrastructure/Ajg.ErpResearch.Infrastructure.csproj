@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Ajg.ErpResearch.Infrastructure</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Ajg.ErpResearch.Core/Ajg.ErpResearch.Core.csproj" />
+  </ItemGroup>
+</Project>
