@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="src/Ajg.ErpResearch.Core/Ajg.ErpResearch.Core.csproj" />
+  <Project Path="src/Ajg.ErpResearch.Infrastructure/Ajg.ErpResearch.Infrastructure.csproj" />
+  <Project Path="src/Ajg.ErpResearch.Web/Ajg.ErpResearch.Web.csproj" />
+  <Project Path="tests/Ajg.ErpResearch.Tests/Ajg.ErpResearch.Tests.csproj" />
+</Solution>
