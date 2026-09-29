@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>Ajg.ErpResearch.Web</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Ajg.ErpResearch.Core/Ajg.ErpResearch.Core.csproj" />
+    <ProjectReference Include="../Ajg.ErpResearch.Infrastructure/Ajg.ErpResearch.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
