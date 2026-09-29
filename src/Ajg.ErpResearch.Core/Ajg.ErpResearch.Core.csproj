@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Ajg.ErpResearch.Core</RootNamespace>
+  </PropertyGroup>
+</Project>
