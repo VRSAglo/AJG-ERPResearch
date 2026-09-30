@@ -13,3 +13,4 @@ backend/target/
 .idea/
 .DS_Store
 Thumbs.db
+.vs/
