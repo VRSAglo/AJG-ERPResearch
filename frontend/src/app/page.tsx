@@ -1,73 +1,17 @@
 "use client";
 import { useState, type FormEvent } from "react";
+import type { ServiceTicket, StatusFilter, } from "../types/serviceTicket";
+import { initialTickets } from "../data/initialTickets";
+import PageHeader from "../components/PageHeader";
+import SummaryCard from "../components/SummaryCard";
+import TicketTable from "../components/TicketTable";
+import ScheduleTicketForm from "../components/ScheduleTicketForm";
 
-type PageHeaderProps = {
-     eyebrow?: string;
-     title: string;
-     description?: string;
- };
-function PageHeader(props: PageHeaderProps) {
-    return (
-        <header className="page-header">
-            {props.eyebrow && ( 
-                <p className="page-header__eyebrow">{props.eyebrow}</p>
-            )}
-            <h1 className="page-header__title">{props.title}</h1>
-            {props.description && (
-                <p className="page-header__description">{props.description}</p>
-            ) }
-         </header>
-    );
-};
-type SummaryCardProps = {
-    label: string;
-    value: number;
-};
-function SummaryCard(props: SummaryCardProps) {
-    return (
-        <article className="summary-card">
-            <p className="summary-card__label">{props.label}</p>
-            <p className="summary-card__value">{props.value}</p>
-            {/*Display props.value */ }
-        </article>
-    )
-};
-type ServiceTicket = {
-    id: string;
-    customer: string;
-    description: string;
-    priority: "Low" | "Medium" | "High";
-    status: "Open" | "Scheduled" | "Completed";
-    technician: string;
-};
-const initialTickets: ServiceTicket[] = [ 
-    {
-        id: "TKT-1001",
-        customer: "Carter Dental", 
-        description: "Install network switch", 
-        priority: "High", 
-        status: "Open", 
-        technician: "Unassigned",
-    }, 
-    {
-        id: "TKT-1002", 
-        customer: "Palmetto Law Group",
-        description: "Troubleshoot wireless access point", 
-        priority: "Medium", 
-        status: "Scheduled", 
-        technician: "Micheal Schmidt",
-    }, 
-    {
-        id: "TKT-1003", 
-        customer: "Rivers Coffee",
-        description: "Replace damaged network cable", 
-        priority: "Low", 
-        status: "Completed", 
-        technician: "Alex Torres",
-    }
-]
-type StatusFilter = "All" | ServiceTicket["status"];
+
+
+
 export default function HomePage() {
+    const [schedulingTicketId, setSchedulingTicketId] = useState<string | null>(null);
     const [newCustomer, setNewCustomer] = useState("");
     const [newDescription, setNewDescription] = useState("");
     const [newPriority, setNewPriority] =
@@ -81,6 +25,7 @@ export default function HomePage() {
         }
         return ticket.status === statusFilter;
     });
+    const selectedTicket = tickets.find((ticket) => ticket.id === schedulingTicketId) ?? null;
     const totalTickets = tickets.length;
     const openTickets = tickets.filter(
         (ticket) => ticket.status === "Open"
@@ -109,28 +54,41 @@ export default function HomePage() {
         setNewDescription("");
         setNewPriority("Medium");
     }
-    function advanceTicketStatus(ticketId: string) {
+    function beginScheduling(ticketId: string) {
+        setSchedulingTicketId(ticketId);
+    }
+    function scheduleTicket(
+        ticketId: string,
+        technician: string,
+        scheduleDate: string,
+        scheduleTime: string
+    ) {
         setTickets((currentTickets) =>
-            currentTickets.map((ticket) => {
-                if (ticket.id !== ticketId) {
-                    return ticket;
-                }
-                if (ticket.status === "Open") {
-                    return {
+            currentTickets.map((ticket) =>
+                ticket.id === ticketId
+                    ? {
                         ...ticket,
+                        technician,
+                        scheduleDate,
+                        scheduleTime,
                         status: "Scheduled",
-                    };
-                }
-                if (ticket.status === "Scheduled") {
-                    return {
+                    }
+                    : ticket));
+        setSchedulingTicketId(null);
+    }
+
+    function completeTicket(ticketId: string) {
+        setTickets((currentTickets) =>
+            currentTickets.map((ticket) =>
+                ticket.id === ticketId
+                    ? {
                         ...ticket,
                         status: "Completed",
-                    };
-                }
-                return ticket;
-            })
-    );
-}
+                    }
+                    : ticket
+            )
+        );
+    }
   return(
      <main>
         <PageHeader
@@ -202,50 +160,18 @@ export default function HomePage() {
                       <option value="Completed">Completed</option>
                       </select>
                   </div>
-              <table className="ticket-table">
-                <thead>
-                      <tr>
-                          <th>Ticket</th>
-                          <th>Customer</th>
-                          <th>Description</th>
-                          <th>Priority</th>
-                          <th>Status</th>
-                              <th>Technicians</th>
-                          <th>Actions</th>
-                      </tr>
-                  </thead>
-                  <tbody>
-                      {displayTickets.map((ticket) => (
-                      <tr key={ticket.id}>
-                              <td>{ticket.id}</td>
-                              <td>{ticket.customer}</td>
-                              <td>{ticket.description}</td>
-                              <td>{ticket.priority}</td>
-                              <td>
-                                  <span className={`status-badge status-badge--${ticket.status.toLowerCase()}`}>
-                                      {ticket.status}
-                                  </span>
-                              </td>
-                              <td>{ticket.technician}</td>
-                              <td>
-                                  {ticket.status !== "Completed" ? ( 
-                                      <button
-                                          className="ticket-action"
-                                          type="button"
-                                          onClick={() => advanceTicketStatus(ticket.id)}
-                                      >
-                                          {ticket.status === "Open"
-                                              ? "Schedule"
-                                              :  "Complete" }
-                                      </button>
-                                  ) : ( 
-                                      <span>Finished</span>
-                                  )}
-                              </td>
-                      </tr>
-                      )) }
-                  </tbody>
-                </table>
+                  {selectedTicket && (
+                      <ScheduleTicketForm
+                          ticket={selectedTicket}
+                          onSave={scheduleTicket}
+                          onCancel={() => setSchedulingTicketId(null)}
+                          />
+                  ) }
+                  <TicketTable
+                      tickets={displayTickets}
+                      onSchedule={beginScheduling}
+                      onComplete={completeTicket}
+                  />
               </section>
           </div>
     </main>
