@@ -20,6 +20,12 @@ export type CreateServiceTicketRequest = {
     priority: ServiceTicket["priority"];
 };
 
+export type ScheduleServiceTicketRequest = {
+    technician: string;
+    scheduleDate: string;
+    scheduleTime: string;
+};
+
 const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL ??
     "http://localhost:8080";
@@ -79,4 +85,48 @@ export async function createServiceTicket(
         await response.json();
 
     return toServiceTicket(createdTicket);
+}
+
+export async function scheduleServiceTicket(
+    databaseId: number,
+    request: ScheduleServiceTicketRequest
+): Promise<ServiceTicket> {
+    const response = await fetch(
+        `${API_BASE_URL}/api/tickets/${databaseId}/schedule`,
+        {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(request),
+        }
+    ); 
+    if (!response.ok) {
+        throw new Error(
+            `Unable to schedule service ticket: ${response.status}`
+        );
+    }
+    const updateTicket: ServiceTicketApiResponse =
+        await response.json();
+    return toServiceTicket(updateTicket);
+}
+
+export async function completeServiceTicket(
+    databaseId: number
+): Promise < ServiceTicket > {
+    const response = await fetch(
+        `${API_BASE_URL}/api/tickets/${databaseId}/complete`, 
+        {
+            method: "PATCH",
+        }
+    );
+    if(!response.ok) {
+    throw new Error(
+        `Unable to complete service ticket: ${response.status}`
+    );
+}
+const updatedTicket: ServiceTicketApiResponse =
+    await response.json();
+
+return toServiceTicket(updatedTicket);
 }

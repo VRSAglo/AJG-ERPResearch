@@ -2,6 +2,7 @@ import type { ServiceTicket } from "../types/serviceTicket";
 
 type TicketTableProps = {
     tickets: ServiceTicket[];
+    updatingTicketId: string | null;
     onSchedule: (ticketId: string) => void;
     onComplete: (ticketId: string) => void;
 };
@@ -43,6 +44,7 @@ export default function TicketTable(props: TicketTableProps) {
                                 <button
                                     className="ticket-action"
                                     type="button"
+                                    disabled={props.updatingTicketId === ticket.id}
                                     onClick={() => {
                                         if (ticket.status === "Open") {
                                             props.onSchedule(ticket.id);
@@ -50,9 +52,13 @@ export default function TicketTable(props: TicketTableProps) {
                                             props.onComplete(ticket.id);
                                         }}}
                                 >
-                                    {ticket.status === "Open"
-                                        ? "Schedule"
-                                        : "Complete"}
+                                    {props.updatingTicketId === ticket.id ?
+                                        ticket.status === "Open"
+                                            ? "Opening..."
+                                            : "Completing..."
+                                        : ticket.status === "Open"
+                                            ? "Schedule" : "Complete"}
+                                            
                                 </button>
                             ) : (
                                 <span>Finished</span>

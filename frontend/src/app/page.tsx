@@ -1,22 +1,14 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import {
-    createServiceTicket,
-    getServiceTickets,
-} from "../api/serviceTickets";
-import {
-    getCustomers,
-    type CustomerSummary,
-} from "../api/customers";
+import { getCustomers, type CustomerSummary, } from "../api/customers";
 import PageHeader from "../components/PageHeader";
 import ScheduleTicketForm from "../components/ScheduleTicketForm";
 import SummaryCard from "../components/SummaryCard";
 import TicketTable from "../components/TicketTable";
-import type {
-    ServiceTicket,
-    StatusFilter,
-} from "../types/serviceTicket";
+import type { ServiceTicket, StatusFilter, } from "../types/serviceTicket";
+import { completeServiceTicket, createServiceTicket, getServiceTickets, scheduleServiceTicket, }
+    from "../api/serviceTickets";
 
 export default function HomePage() {
     const [tickets, setTickets] = useState<ServiceTicket[]>([]);
@@ -33,6 +25,8 @@ export default function HomePage() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
+
+    const [updatingTicketId, setUpdatingTicketId] = useState<string | null>(null);
     const [loadError, setLoadError] =
         useState<string | null>(null);
     const [actionError, setActionError] =
@@ -128,40 +122,81 @@ export default function HomePage() {
         setSchedulingTicketId(ticketId);
     }
 
-    function scheduleTicket(
+    async function scheduleTicket(
         ticketId: string,
         technician: string,
         scheduleDate: string,
         scheduleTime: string
     ) {
-        setTickets((currentTickets) =>
-            currentTickets.map((ticket) =>
-                ticket.id === ticketId
-                    ? {
-                        ...ticket,
-                        technician,
-                        scheduleDate,
-                        scheduleTime,
-                        status: "Scheduled",
-                    }
-                    : ticket
-            )
+        const ticketToSchedule = tickets.find(
+            (ticket) => ticket.id === ticketId
         );
 
-        setSchedulingTicketId(null);
+        if (!ticketToSchedule?.databaseId) {
+            setActionError(
+                "Unable to schedule ticket: database ID is missing"
+            );
+            return;
+        }
+
+        setActionError(null);
+        setUpdatingTicketId(ticketId);
+        try {
+            const updatedTicket = await scheduleServiceTicket(
+                ticketToSchedule.databaseId,
+                {
+                    technician,
+                    scheduleDate,
+                    scheduleTime,
+                }
+            );
+
+            setTickets((currentTickets) =>
+                currentTickets.map((ticket) =>
+                    ticket.databaseId === updatedTicket.databaseId
+                        ? updatedTicket
+                        : ticket
+                )
+            );
+
+            setSchedulingTicketId(null);
+        } catch (error) {
+            setActionError(
+                error instanceof Error
+                    ? error.message
+                    : "Unable to schedule service ticket"
+            );
+        } finally {
+            setUpdatingTicketId(null);
+        }
     }
-
-    function completeTicket(ticketId: string) {
-        setTickets((currentTickets) =>
-            currentTickets.map((ticket) =>
-                ticket.id === ticketId
-                    ? {
-                        ...ticket,
-                        status: "Completed",
-                    }
-                    : ticket
-            )
+    async function completeTicket(ticketId: string) {
+        const ticketToComplete = tickets.find(
+            (ticket) => ticket.id === ticketId
         );
+        if (!ticketToComplete?.databaseId) {
+            setActionError(
+                "Unable to complete ticket: database ID is missing"
+            );
+            return;
+        }
+        setActionError(null);
+
+        try {
+            const updatedTicket = await completeServiceTicket(
+                ticketToComplete.databaseId
+            );
+            setTickets((currentTickets) =>
+                currentTickets.map((ticket) =>
+                    ticket.databaseId === updatedTicket.databaseId
+                        ? updatedTicket : ticket
+                )
+            );
+        } catch (error) {
+            setActionError(
+                error instanceof Error ? error.message : "Unable to complete service ticket"
+            );
+        }
     }
 
     return (
@@ -296,6 +331,7 @@ export default function HomePage() {
                     {selectedTicket && (
                         <ScheduleTicketForm
                             ticket={selectedTicket}
+                            isSaving={updatingTicketId === selectedTicket.id }
                             onSave={scheduleTicket}
                             onCancel={() =>
                                 setSchedulingTicketId(null)
@@ -314,6 +350,7 @@ export default function HomePage() {
                     {!isLoading && !loadError && (
                         <TicketTable
                             tickets={displayedTickets}
+                            updatingTicketId={updatingTicketId}
                             onSchedule={beginScheduling}
                             onComplete={completeTicket}
                         />

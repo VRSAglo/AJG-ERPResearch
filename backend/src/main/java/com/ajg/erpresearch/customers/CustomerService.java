@@ -3,6 +3,8 @@ package com.ajg.erpresearch.customers;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
+import java.util.UUID;
 import java.util.List;
 
 @Service
@@ -21,11 +23,62 @@ public class CustomerService {
         return customerRepository
                 .findAllByOrderByCustomerNameAsc()
                 .stream()
-                .map(customer -> new CustomerSummaryResponse(
-                        customer.getId(),
-                        customer.getCustomerNumber(),
-                        customer.getCustomerName()
-                ))
+                .map(this::toResponse)
                 .toList();
     }
+    @Transactional
+    public CustomerSummaryResponse create(
+        CreateCustomerRequest request
+    ) {
+        String customerNumber = generateCustomerNumber();
+
+        Customer customer = new Customer(
+            customerNumber,
+            request.customerName().trim(),
+            normalizeOptional(request.contactName()),
+            normalizeOptional(request.email()),
+            normalizeOptional(request.phone())
+        );
+        Customer savedCustomer =
+            customerRepository.save(customer);
+
+        return toResponse(savedCustomer);
+    }
+
+    private String generateCustomerNumber() {
+        String customerNumber;
+
+        do {
+            String randomPart = UUID    
+                .randomUUID()
+                .toString()
+                .substring(0,8)
+                .toUpperCase(Locale.ROOT);
+
+            customerNumber = "CUST-" + randomPart;
+        } while (
+            customerRepository.existsByCustomerNumber(customerNumber)
+        );
+        return customerNumber;
+    } 
+
+    private String normalizeOptional(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
+    }
+
+    private CustomerSummaryResponse toResponse(Customer customer) {
+        return new CustomerSummaryResponse(
+                customer.getId(),
+                customer.getCustomerNumber(),
+                customer.getCustomerName(),
+                customer.getContactName(),
+                customer.getEmail(),
+                customer.getPhone(),
+                customer.getStatus()
+        );
+    }
+
 }

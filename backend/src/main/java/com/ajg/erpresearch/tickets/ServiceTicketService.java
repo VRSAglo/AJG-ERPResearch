@@ -77,6 +77,37 @@ public class ServiceTicketService {
             return ticketNumber;
     }
 
+    @Transactional
+    public ServiceTicketResponse schedule(
+        Long ticketId,
+        ScheduleServiceTicketRequest request
+    ) {
+        ServiceTicket ticket = ticketRepository
+            .findById(ticketId)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                    "Service ticket not found"
+             ));
+        ticket.schedule(
+            request.technician().trim(),
+            request.scheduleDate(),
+            request.scheduleTime()
+        );
+        return toResponse(ticket);
+    }
+
+    @Transactional
+    public ServiceTicketResponse complete(Long ticketId){
+        ServiceTicket ticket = ticketRepository
+            .findById(ticketId)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Service ticket not found"
+                ));
+            ticket.complete();
+            return toResponse(ticket);
+    }
+
     private ServiceTicketResponse toResponse(
             ServiceTicket ticket
     ) {

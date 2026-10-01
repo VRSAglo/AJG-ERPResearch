@@ -68,6 +68,21 @@ public class ServiceTicket {
 		this.status = "Open";
 	}
 
+	public void schedule(
+		String technician,
+		LocalDate scheduleDate,
+		LocalTime scheduleTime
+	){
+		this.technician = technician;
+		this.scheduleDate = scheduleDate;
+		this.scheduleTime = scheduleTime;
+		this.status = "Scheduled";
+	}
+
+	public void complete(){ 
+		this.status = "Completed";
+	}
+
 	public Long getId() {
 		return id;
 	}

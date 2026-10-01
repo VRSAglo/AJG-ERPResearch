@@ -41,6 +41,20 @@ public class Customer {
 
 	protected Customer() {
 	}
+	public Customer(
+		String customerNumber,
+		String customerName,
+		String contactName,
+		String email,
+		String phone
+	) {
+		this.customerNumber = customerNumber;
+		this.customerName = customerName;
+		this.contactName = contactName;
+		this.email = email;
+		this.phone = phone;
+		this.status = "Pending";
+	}
 
 	public Long getId() {
 	return id;
@@ -54,4 +68,19 @@ public class Customer {
 	return customerName;
 	}
 
+	public String getContactName() {
+		return contactName;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public String getPhone() {
+		return phone;	
+	}
+
+	public String getStatus() {
+		return status;
+	}
 }

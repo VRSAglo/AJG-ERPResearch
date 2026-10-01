@@ -7,6 +7,7 @@ import type { ServiceTicket } from "../types/serviceTicket";
 
 type SchedulingTicketFormProps = {
     ticket: ServiceTicket;
+    isSaving: boolean;
     onSave: (
         ticketId: string,
         technician: string,
@@ -40,7 +41,7 @@ export default function ScheduleTicketForm(
             <p>
                 {props.ticket.customer}: {props.ticket.description}
             </p>
-
+            
             <form className="schedule-form" onSubmit={handleSubmit}>
                 <label>
                     Technician
@@ -50,7 +51,7 @@ export default function ScheduleTicketForm(
                         required
                     >
                         <option value="">Select a technician</option>
-                        <option value="Michael Schmit">Michael Schmidt</option>
+                        <option value="Michael Schmidt">Michael Schmidt</option>
                         <option value="Alex Torres">Alex Torres</option>
                         <option value="Jordan Lee">Jordan Lee</option>
                     </select>
@@ -73,10 +74,19 @@ export default function ScheduleTicketForm(
                     />
                 </label>
                 <div className="schedule-form__actions">
-                    <button type="submit">Save Schedule</button>
-                    <button type="button" onClick={props.onCancel}>
-                        Cancel
-                    </button>
+                <button
+                    type="submit"
+                    disabled={props.isSaving}
+                >
+                    {props.isSaving ? "Scheduling..." : "Save schedule"}
+                </button>
+                <button
+                    type="button"
+                    onClick={props.onCancel}
+                    disabled={props.isSaving}
+                >
+                Cancel
+                </button>
                 </div>
             </form>
         </section>

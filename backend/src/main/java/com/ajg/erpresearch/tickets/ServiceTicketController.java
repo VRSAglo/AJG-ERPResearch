@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
 import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -37,4 +40,19 @@ public class ServiceTicketController {
         ) {
         return ticketService.create(request);
         }
+
+    @PatchMapping("/{ticketId}/schedule")
+    public ServiceTicketResponse schedule(
+        @PathVariable Long ticketId,
+        @Valid @RequestBody ScheduleServiceTicketRequest request
+       ) {
+        return ticketService.schedule(ticketId, request);
+       }
+
+    @PatchMapping("/{ticketId}/complete")
+    public ServiceTicketResponse complete(
+        @PathVariable Long ticketId
+        ) {
+            return ticketService.complete(ticketId);
+            }
 }
