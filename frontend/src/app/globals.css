@@ -203,3 +203,10 @@ body{
         grid-template-columns: 1fr;
     }
 }
+.error-message {
+    padding: 0.75rem;
+    border: 1px solix #dc2626;
+    border-radius: 0.375rem;
+    background-color: #fee2e2;
+    color: #991b1b;
+}

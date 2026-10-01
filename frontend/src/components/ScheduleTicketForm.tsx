@@ -73,7 +73,7 @@ export default function ScheduleTicketForm(
                     />
                 </label>
                 <div className="schedule-form__actions">
-                    <button type="Submit">Save Schedule</button>
+                    <button type="submit">Save Schedule</button>
                     <button type="button" onClick={props.onCancel}>
                         Cancel
                     </button>

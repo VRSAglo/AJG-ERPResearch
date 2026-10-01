@@ -14,7 +14,7 @@ public record ServiceTicketResponse(
 	String status,
 	String technician,
 	LocalDate scheduleDate,
-	LocalTime scheduleTIme
+	LocalTime scheduleTime
 	)
 	{
 }

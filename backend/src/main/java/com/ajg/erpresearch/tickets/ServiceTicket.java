@@ -55,6 +55,18 @@ public class ServiceTicket {
 
 	protected ServiceTicket() {
 	}
+	public ServiceTicket(
+		String ticketNumber,
+		Customer customer,
+		String description,
+		String priority
+	) {
+		this.ticketNumber = ticketNumber;
+		this.customer = customer;
+		this.description = description;
+		this.priority = priority;
+		this.status = "Open";
+	}
 
 	public Long getId() {
 		return id;
