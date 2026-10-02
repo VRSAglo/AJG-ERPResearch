@@ -15,5 +15,7 @@ public record ProposalResponse(
     BigDecimal hourlyRate,
     BigDecimal totalAmount,
     String status,
-    LocalDateTime acceptedAt
+    LocalDateTime acceptedAt, 
+    Long serviceTicketId,
+    String serviceTicketNumber
 ) {}

@@ -16,4 +16,8 @@ public interface ServiceTicketRepository
 	Optional<ServiceTicket> findByTicketNumber(String ticketNumber);
 
 	boolean existsByTicketNumber(String ticketNumber);
+
+	boolean existsByProposalId(Long proposalId);
+
+	Optional<ServiceTicket> findByProposalId(Long proposalId);
 }

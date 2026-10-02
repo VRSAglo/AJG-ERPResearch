@@ -11,8 +11,9 @@ export type Proposal = {
     totalAmount: number;
     status: "Draft" | "Accepted" | "Declined";
     acceptedAt: string | null;
+    serviceTicketId: number | null;
+    serviceTicketNumber: string | null;
 };
-
 export type CreateProposalRequest = {
     customerId: number;
     title: string;

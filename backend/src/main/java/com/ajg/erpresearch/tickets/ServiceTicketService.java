@@ -6,6 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ajg.erpresearch.customers.CustomerRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import com.ajg.erpresearch.proposals.Proposal;
+import com.ajg.erpresearch.proposals.ProposalRepository;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -16,15 +18,18 @@ public class ServiceTicketService {
 
     private final ServiceTicketRepository ticketRepository;
     private final CustomerRepository customerRepository;
+    private final ProposalRepository proposalRepository;
 
     public ServiceTicketService(
         ServiceTicketRepository ticketRepository,
-        CustomerRepository customerRepository
+        CustomerRepository customerRepository,
+        ProposalRepository proposalRepository
         ) {
         this.ticketRepository = ticketRepository;
         this.customerRepository = customerRepository;
-      
+        this.proposalRepository = proposalRepository;
       }
+
     @Transactional(readOnly = true)
     public List<ServiceTicketResponse> findAll() {
         return ticketRepository
@@ -58,6 +63,41 @@ public class ServiceTicketService {
         ticketRepository.save(ticket);
 
     return toResponse(savedTicket);
+    }
+@Transactional
+public ServiceTicketResponse createFromProposal(
+    Long proposalId,
+    CreateTicketFromProposalRequest request ) {
+        Proposal proposal = proposalRepository
+        .findById(proposalId)
+        .orElseThrow(() -> new ResponseStatusException(
+            HttpStatus.NOT_FOUND, 
+            "Proposal not found"
+        ));
+        if(!"Accepted".equals(proposal.getStatus())) {
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Proposal must be accepted before creating a ticket"
+        );
+        }
+        if (ticketRepository.existsByProposalId(proposalId)) {
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "A service ticket already exists for this proposal"
+            );
+        }
+
+        ServiceTicket ticket = new ServiceTicket(
+            generateTicketNumber(),
+            proposal.getCustomer(),
+            proposal,
+            proposal.getTitle(),
+            request.priority()
+        );
+        ServiceTicket savedTicket = 
+        ticketRepository.save(ticket);
+
+        return toResponse(savedTicket);
     }
 
     private String generateTicketNumber() {

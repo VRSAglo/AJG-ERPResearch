@@ -2,16 +2,19 @@
 
 import { useEffect, useState } from "react";
 import {
-    createCustomer, getCustomers, type CustomerSummary,
+    createCustomer, getCustomers, activateCustomer,
+    type CustomerSummary, 
 } from "../../api/customers";
 import CreateCustomerForm from "../../components/CreateCustomerForm";
 import PageHeader from "../../components/PageHeader";
+
 
 export default function CustomerPage() {
     const [customers, setCustomers] = useState<CustomerSummary[]>([]);
     const [isLoading, setLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
-    const[error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [activatingCustomer, setActivatingCustomerId] = useState<number | null>(null);
 
     useEffect(() => {
         async function loadCustomers() {
@@ -92,6 +95,7 @@ return (
                                 <th>Email</th>
                                 <th>Phone</th>
                                 <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -103,6 +107,25 @@ return (
                                     <td>{customer.email ?? "Not provided"}</td>
                                     <td>{customer.phone ?? "Not provided"}</td>
                                     <td>{customer.status}</td>
+                                    <td>
+                                        {customer.status === "Pending" ? (
+                                            <button
+                                                className="ticket-action"
+                                                type="button"
+                                                disabled={
+                                                    activatingCustomer === customer.id
+                                                }
+                                                onClick={() =>
+                                                    handleActivateCustomer(customer.id)
+                                                }
+                                            >
+                                                {activatingCustomer === customer.id
+                                                    ? "Activating..." : "Activate"
+                                                }
+                                            </button>
+                                        ) : ( <span>{customer.status}</span>)
+                                         }
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -111,5 +134,29 @@ return (
             </section>
         </div>
     </main>
-);
+    );
+
+    async function handleActivateCustomer(
+        customerId: number
+    ) {
+        setActivatingCustomerId(customerId);
+        setError(null);
+
+        try {
+            const updatedCustomer =
+                await activateCustomer(customerId);
+
+            setCustomers((currentCustomers) =>
+                currentCustomers.map((customer) =>
+                    customer.id === updatedCustomer.id
+                        ? updatedCustomer : customer
+                ));
+        } catch (error) {
+            setError(
+                error instanceof Error ? error.message : "Unable to activate customer"
+            );
+        } finally {
+            setActivatingCustomerId(null);
+        }
+    }
 }

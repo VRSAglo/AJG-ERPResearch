@@ -10,6 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import com.ajg.erpresearch.proposals.Proposal;
+import jakarta.persistence.OneToOne;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,6 +31,10 @@ public class ServiceTicket {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "customer_id" , nullable = false)
 	private Customer customer;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "proposal_id", unique = true)
+	private Proposal proposal;
 
 	@Column(nullable = false, length = 500)
 	private String description;
@@ -55,19 +61,36 @@ public class ServiceTicket {
 
 	protected ServiceTicket() {
 	}
+
 	public ServiceTicket(
 		String ticketNumber,
 		Customer customer,
 		String description,
 		String priority
 	) {
+		this(
+			ticketNumber,
+			customer,
+			null,
+			description,
+			priority);
+	}
+
+	public ServiceTicket(
+		String ticketNumber,
+		Customer customer,
+		Proposal proposal,
+		String description,
+		String priority
+	) {
 		this.ticketNumber = ticketNumber;
 		this.customer = customer;
+		this.proposal = proposal;
 		this.description = description;
 		this.priority = priority;
 		this.status = "Open";
 	}
-
+ 
 	public void schedule(
 		String technician,
 		LocalDate scheduleDate,
@@ -81,6 +104,10 @@ public class ServiceTicket {
 
 	public void complete(){ 
 		this.status = "Completed";
+	}
+
+	public Proposal getProposal(){
+		return proposal;
 	}
 
 	public Long getId() {

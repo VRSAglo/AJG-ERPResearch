@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import "./globals.css";
 import SiteNavigation from "../components/SiteNavigation";
+import "@fullcalendar/react/skeleton.css";
+import "@fullcalendar/react/themes/monarch/theme.css";
+import "@fullcalendar/react/themes/monarch/palettes/blue.css";
 
 
 export const metadata = {

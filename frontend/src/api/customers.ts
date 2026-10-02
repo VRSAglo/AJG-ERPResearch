@@ -2,7 +2,7 @@ export type CustomerSummary = {
     id: number;
     customerNumber: string;
     customerName: string;
-    contactName: string;
+    contactName: string | null;
     email: string | null;
     phone: string | null;
     status: string;
@@ -42,6 +42,22 @@ export async function createCustomer(
     if (!response.ok) {
         throw new Error(
             `Unable to create customer: ${response.status}`
+        );
+    }
+    return response.json();
+}
+
+export async function activateCustomer(
+    customerId: number
+): Promise<CustomerSummary> {
+    const response = await fetch(`${API_BASE_URL}/api/customers/${customerId}/activate`,
+        {
+            method: "PATCH",
+        });
+
+    if (!response.ok) {
+        throw new Error(
+            `Unable to activate customer: ${response.status}`
         );
     }
     return response.json();

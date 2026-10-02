@@ -12,6 +12,14 @@ const navigationItems = [
         href: "/customers",
         label: "Customers",
     },
+    {
+        href: "/proposals",
+        label: "Proposals",
+    },
+    {
+        href: "/calendar",
+        label: "Calendar",
+    },
 ];
 
 export default function SiteNavigation() {

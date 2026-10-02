@@ -55,4 +55,14 @@ public class ServiceTicketController {
         ) {
             return ticketService.complete(ticketId);
             }
+
+    @PostMapping("/from-proposal/{proposalId}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ServiceTicketResponse createFromProposal(
+        @PathVariable Long proposalId,
+        @Valid @RequestBody
+        CreateTicketFromProposalRequest request 
+    ) {
+        return ticketService.createFromProposal(proposalId, request);
+    }
 }

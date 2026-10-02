@@ -130,3 +130,29 @@ const updatedTicket: ServiceTicketApiResponse =
 
 return toServiceTicket(updatedTicket);
 }
+
+export async function createTicketFromProposal(
+    proposalId: number,
+    priority: ServiceTicket["priority"]
+): Promise<ServiceTicket> {
+    const response = await fetch(
+        `${API_BASE_URL}/api/tickets/from-proposal/${proposalId}`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                priority,
+            }),
+        }
+    );
+    if (!response.ok) {
+        throw new Error(
+            `Unable to create ticket from proposal: ${response.status}`
+        );
+    }
+    const createdTicket: ServiceTicketApiResponse = await response.json();
+
+    return toServiceTicket(createdTicket);
+}

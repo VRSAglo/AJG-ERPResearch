@@ -244,3 +244,61 @@ body{
     background-color: #0b4f8a;
     color: white;
 }
+.proposal-form{
+    grid-template-columns: repeat(2,minmax(0,1fr));
+}
+
+.proposal-form textarea {
+    min-height: 6rem;
+    padding: 0.6rem;
+    border: 1px solid #b8c5d5;
+    resize: vertical;
+}
+
+.proposal-form__description{
+    grid-column: 1 / -1;
+}
+
+.proposal-form__total {
+    align-self: end;
+    padding: 0.65rem;
+    font-size: 1.05rem;
+}
+
+@media (max-width: 800px) {
+    .proposal-form {
+        grid-template-columns: 1fr;
+    }
+    .proposal-form__description{
+        grid-column:auto;
+    }
+}
+
+.proposal-ticket-action {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.proposal-ticket-action select {
+    padding: 0.4rem;
+    border: 1px solid #b8c5d5;
+    border-radius: 0.375rem;
+    background-color: white;
+}
+
+.ticket-calendar {
+    margin: 2rem;
+    padding: 1rem;
+    background-color: white;
+    border: 1px solid @d7e0eb;
+    border-radius: 0.5rem;
+}
+
+.ticket-calendar .fc-event {
+    cursor: grab;
+}
+
+.ticket-calendar .fc-event:active{
+    cursor: grabbing;
+}

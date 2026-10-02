@@ -2,6 +2,8 @@ package com.ajg.erpresearch.customers;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -79,6 +81,19 @@ public class CustomerService {
                 customer.getPhone(),
                 customer.getStatus()
         );
+    }
+
+    @Transactional
+    public CustomerSummaryResponse activate(Long customerId) {
+        Customer customer = customerRepository
+            .findById(customerId) 
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, 
+                "Customer not found"
+            ));
+            customer.activate();
+
+            return toResponse(customer);
     }
 
 }

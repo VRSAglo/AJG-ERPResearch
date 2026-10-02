@@ -83,4 +83,8 @@ public class Customer {
 	public String getStatus() {
 		return status;
 	}
+
+	public void activate() {
+		this.status = "Active";
+	}
 }

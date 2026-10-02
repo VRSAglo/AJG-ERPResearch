@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import com.ajg.erpresearch.tickets.ServiceTicket;
+import com.ajg.erpresearch.tickets.ServiceTicketRepository;
 
 import java.util.List;
 import java.util.Locale;
@@ -15,13 +17,16 @@ import java.util.UUID;
 public class ProposalService{ 
     private final ProposalRepository proposalRepository;
     private final CustomerRepository customerRepository;
+    private final ServiceTicketRepository ticketRepository;
 
     public ProposalService( 
         ProposalRepository proposalRepository, 
-        CustomerRepository customerRepository
-    ) {
+        CustomerRepository customerRepository,
+        ServiceTicketRepository ticketRepository
+    ){
         this.proposalRepository = proposalRepository;
         this.customerRepository = customerRepository;
+        this.ticketRepository = ticketRepository;
     }
 
     @Transactional(readOnly = true) 
@@ -99,6 +104,7 @@ public class ProposalService{
 
     private ProposalResponse toResponse(Proposal proposal) {
         Customer customer = proposal.getCustomer();
+        ServiceTicket ticket = ticketRepository.findByProposalId(proposal.getId()).orElse(null);
 
         return new ProposalResponse( 
             proposal.getId(),
@@ -112,7 +118,9 @@ public class ProposalService{
             proposal.getHourlyRate(),
             proposal.getTotalAmount(), 
             proposal.getStatus(), 
-            proposal.getAcceptedAt()
+            proposal.getAcceptedAt(),
+            ticket == null ? null : ticket.getId(), 
+            ticket == null ? null : ticket.getTicketNumber()
         );
     }
 }
