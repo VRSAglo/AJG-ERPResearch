@@ -1,0 +1,57 @@
+@using Ajg.ErpResearch.Web.Models
+
+<EditForm Model="input" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label for="customer-name">Customer</label>
+        <InputText
+                   id="customer-name"
+                   @bind-Value="input.CustomerName" />
+        <ValidationMessage
+                           For="() => input.CustomerName" />
+    </div>
+    <div>
+        <label for="description">Description</label>
+        <InputText
+                   id="description"
+                   @bind-Value="input.Description" />
+        <ValidationMessage
+                           For="()=> input.Description" />
+    </div>
+    <div>
+        <label for="priority">Priority</label>
+        <InputSelect TValue="TicketPriority"
+                     id="priority"
+                     @bind-Value="input.Priority">
+            @foreach (var priority in Enum.GetValues<TicketPriority>())
+            {
+                <option value="@priority">
+                    @priority
+                </option>
+            }
+        </InputSelect>
+    </div>
+
+    <button type="submit" disabled="@IsSaving">
+        @(IsSaving ? "Creating..." : "Create Ticket")
+    </button>
+</EditForm>
+
+@code {
+    private CreateTicketInput input = new();
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback<CreateTicketInput> OnSubmit { get; set; }
+
+    [Parameter]
+    public bool IsSaving {get; set;}
+
+    private async Task HandleValidSubmit()
+    {
+        await OnSubmit.InvokeAsync(input);
+        input = new CreateTicketInput();
+    }
+}

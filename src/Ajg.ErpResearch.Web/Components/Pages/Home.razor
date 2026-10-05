@@ -1,6 +1,60 @@
 @page "/"
+@rendermode InteractiveServer
+@inject IServiceTicketRepository TicketRepository
 
-<PageTitle>ERP Research Prototype</PageTitle>
+<PageTitle>Service Tickets</PageTitle>
+<header class="page-header"><span>OPERATIONS</span><h1>Service Tickets</h1><p>Create, schedule, and monitor customer service work.</p></header>
+<section class="panel"><h2>Create Ticket</h2><CreateTicketForm OnSubmit="HandleCreateTicket" IsSaving="isSaving" /></section>
 
-<h1>Service Ticket Research Prototype</h1>
-<p>The first interactive feature will be implemented during the guided exercise.</p>
+@if (tickets is null) { <p>Loading tickets...</p> }
+else {
+    <section class="summary-grid">
+        <article><span>Total tickets</span><strong>@tickets.Count</strong></article>
+        <article><span>Open</span><strong>@tickets.Count(x => x.Status == TicketStatus.Open)</strong></article>
+        <article><span>Scheduled</span><strong>@tickets.Count(x => x.Status == TicketStatus.Scheduled)</strong></article>
+        <article><span>Completed</span><strong>@tickets.Count(x => x.Status == TicketStatus.Completed)</strong></article>
+    </section>
+    <section class="panel table-wrap"><div class="section-heading"><h2>Current Tickets</h2>
+        <label>Status <select @bind="statusFilter"><option>All</option>@foreach (var status in Enum.GetValues<TicketStatus>()) { <option>@status</option> }</select></label>
+    </div>
+    <table><thead><tr><th>Ticket</th><th>Customer</th><th>Description</th><th>Priority</th><th>Status</th><th>Technician</th><th>Scheduled</th><th>Action</th></tr></thead>
+    <tbody>@foreach (var ticket in DisplayedTickets) { <tr>
+        <td>@ticket.TicketNumber</td><td>@ticket.CustomerName</td><td>@ticket.Description</td><td>@ticket.Priority</td>
+        <td><span class="badge @ticket.Status.ToString().ToLowerInvariant()">@ticket.Status</span></td>
+        <td>@(ticket.Technician ?? "Unassigned")</td><td>@(ticket.ScheduledFor?.ToString("g") ?? "Not scheduled")</td>
+        <td>@if (ticket.Status == TicketStatus.Open) {
+            <ScheduleTicketForm TicketId="ticket.Id" OnSubmit="HandleScheduleTicket" IsSaving="@(schedulingTicketId == ticket.Id)" />
+        } else if (ticket.Status == TicketStatus.Scheduled) {
+            <button disabled="@(completingTicketId == ticket.Id)" @onclick="() => HandleCompleteTicket(ticket.Id)">@(completingTicketId == ticket.Id ? "Completing..." : "Complete")</button>
+        } else { <span>Finished</span> }</td>
+    </tr> }</tbody></table></section>
+}
+
+@code {
+    private IReadOnlyList<ServiceTicket>? tickets;
+    private bool isSaving;
+    private Guid? schedulingTicketId;
+    private Guid? completingTicketId;
+    private string statusFilter = "All";
+    private IEnumerable<ServiceTicket> DisplayedTickets => tickets?.Where(x => statusFilter == "All" || x.Status.ToString() == statusFilter) ?? [];
+    protected override async Task OnInitializedAsync() => await Refresh();
+    private async Task Refresh() => tickets = await TicketRepository.GetAllAsync();
+    private async Task HandleCreateTicket(CreateTicketInput input)
+    {
+        isSaving = true;
+        try { var current = await TicketRepository.GetAllAsync(); await TicketRepository.AddAsync(new ServiceTicket($"TKT-{1001 + current.Count:D4}", input.CustomerName, input.Description, input.Priority)); await Refresh(); }
+        finally { isSaving = false; }
+    }
+    private async Task HandleScheduleTicket(ScheduleTicketInput input)
+    {
+        schedulingTicketId = input.TicketId;
+        try { var ticket = await TicketRepository.GetByIdAsync(input.TicketId) ?? throw new InvalidOperationException("Ticket not found."); ticket.Schedule(input.Technician, new DateTimeOffset(input.ScheduledFor)); await TicketRepository.UpdateAsync(ticket); await Refresh(); }
+        finally { schedulingTicketId = null; }
+    }
+    private async Task HandleCompleteTicket(Guid id)
+    {
+        completingTicketId = id;
+        try { var ticket = await TicketRepository.GetByIdAsync(id) ?? throw new InvalidOperationException("Ticket not found."); ticket.Complete(); await TicketRepository.UpdateAsync(ticket); await Refresh(); }
+        finally { completingTicketId = null; }
+    }
+}

@@ -1,0 +1,39 @@
+@page "/customers"
+@rendermode InteractiveServer
+@inject ErpWorkflowService Workflow
+
+<PageTitle>Customers</PageTitle>
+<header class="page-header"><span>CUSTOMER MANAGEMENT</span><h1>Customers</h1><p>Create and activate service customers.</p></header>
+
+<section class="panel">
+    <h2>Create Customer</h2>
+    <EditForm @key="input" Model="input" OnValidSubmit="CreateCustomer" class="form-grid">
+        <DataAnnotationsValidator /><ValidationSummary />
+        <label>Customer name<InputText @bind-Value="input.CustomerName" /></label>
+        <label>Contact name<InputText @bind-Value="input.ContactName" /></label>
+        <label>Email<InputText type="email" @bind-Value="input.Email" /></label>
+        <label>Phone<InputText @bind-Value="input.Phone" /></label>
+        <button type="submit">Create Customer</button>
+    </EditForm>
+</section>
+
+<section class="panel table-wrap"><h2>Customer Directory</h2>
+    @if (customers.Count == 0) { <p class="empty">No customers have been created.</p> }
+    else {
+    <table><thead><tr><th>Customer</th><th>Name</th><th>Contact</th><th>Email</th><th>Phone</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>@foreach (var customer in customers) { <tr>
+        <td>@customer.CustomerNumber</td><td>@customer.CustomerName</td><td>@(customer.ContactName ?? "Not provided")</td>
+        <td>@(customer.Email ?? "Not provided")</td><td>@(customer.Phone ?? "Not provided")</td>
+        <td><span class="badge @customer.Status.ToString().ToLowerInvariant()">@customer.Status</span></td>
+        <td>@if (customer.Status == CustomerStatus.Pending) { <button @onclick="() => Activate(customer.Id)">Activate</button> } else { <span>Ready</span> }</td>
+    </tr> }</tbody></table> }
+</section>
+
+@code {
+    private CreateCustomerInput input = new();
+    private IReadOnlyList<Customer> customers = [];
+    protected override void OnInitialized() => Refresh();
+    private void CreateCustomer() { Workflow.CreateCustomer(input); input = new(); Refresh(); }
+    private void Activate(Guid id) { Workflow.ActivateCustomer(id); Refresh(); }
+    private void Refresh() => customers = Workflow.GetCustomers();
+}

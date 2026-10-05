@@ -1,0 +1,47 @@
+@page "/proposals"
+@rendermode InteractiveServer
+@inject ErpWorkflowService Workflow
+
+<PageTitle>Proposals</PageTitle>
+<header class="page-header"><span>SALES</span><h1>Proposals</h1><p>Create and accept hourly service proposals.</p></header>
+
+<section class="panel"><h2>Create Hourly Proposal</h2>
+@if (activeCustomers.Count == 0) { <p class="notice">Activate a customer before creating a proposal.</p> }
+else {
+<EditForm @key="input" Model="input" OnValidSubmit="CreateProposal" class="form-grid proposal-form">
+    <DataAnnotationsValidator /><ValidationSummary />
+    <label>Customer<InputSelect TValue="Guid?" @bind-Value="input.CustomerId"><option value="">Select a customer</option>
+        @foreach (var customer in activeCustomers) { <option value="@customer.Id">@customer.CustomerNumber — @customer.CustomerName</option> }
+    </InputSelect></label>
+    <label>Proposal title<InputText @bind-Value="input.Title" /></label>
+    <label class="wide">Scope of work<InputTextArea @bind-Value="input.Description" /></label>
+    <label>Estimated hours<InputNumber @bind-Value="input.EstimatedHours" /></label>
+    <label>Hourly rate<InputNumber @bind-Value="input.HourlyRate" /></label>
+    <div class="calculated">Estimated total <strong>@((input.EstimatedHours * input.HourlyRate).ToString("C"))</strong></div>
+    <button type="submit">Create Proposal</button>
+</EditForm> }
+</section>
+
+<section class="panel table-wrap"><h2>Proposal Directory</h2>
+@if (proposals.Count == 0) { <p class="empty">No proposals have been created.</p> }
+else { <table><thead><tr><th>Proposal</th><th>Customer</th><th>Title</th><th>Hours</th><th>Rate</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+<tbody>@foreach (var proposal in proposals) { <tr>
+    <td>@proposal.ProposalNumber</td><td>@proposal.CustomerName</td><td>@proposal.Title</td><td>@proposal.EstimatedHours</td>
+    <td>@proposal.HourlyRate.ToString("C")</td><td>@proposal.TotalAmount.ToString("C")</td><td><span class="badge @proposal.Status.ToString().ToLowerInvariant()">@proposal.Status</span></td>
+    <td>@if (proposal.ServiceTicketNumber is not null) { <span>Ticket @proposal.ServiceTicketNumber created</span> }
+        else if (proposal.Status == ProposalStatus.Draft) { <button @onclick="() => Accept(proposal.Id)">Accept</button> }
+        else { <div class="inline-action"><InputSelect @bind-Value="priorities[proposal.Id]">@foreach (var priority in Enum.GetValues<TicketPriority>()) { <option value="@priority">@priority</option> }</InputSelect><button @onclick="() => CreateTicket(proposal.Id)">Create Ticket</button></div> }</td>
+</tr> }</tbody></table> }
+</section>
+
+@code {
+    private CreateProposalInput input = new();
+    private IReadOnlyList<Customer> activeCustomers = [];
+    private IReadOnlyList<Proposal> proposals = [];
+    private readonly Dictionary<Guid, TicketPriority> priorities = [];
+    protected override void OnInitialized() => Refresh();
+    private void CreateProposal() { Workflow.CreateProposal(input); input = new(); Refresh(); }
+    private void Accept(Guid id) { Workflow.AcceptProposal(id); Refresh(); }
+    private async Task CreateTicket(Guid id) { await Workflow.CreateTicketFromProposalAsync(id, priorities.GetValueOrDefault(id, TicketPriority.Medium)); Refresh(); }
+    private void Refresh() { activeCustomers = Workflow.GetActiveCustomers(); proposals = Workflow.GetProposals(); foreach (var p in proposals) priorities.TryAdd(p.Id, TicketPriority.Medium); }
+}

@@ -1,0 +1,49 @@
+@page "/calendar"
+@rendermode InteractiveServer
+@inject IServiceTicketRepository TicketRepository
+
+<PageTitle>Dispatch Calendar</PageTitle>
+<header class="page-header"><span>DISPATCH</span><h1>Service Calendar</h1><p>Drag scheduled tickets to a new day and time.</p></header>
+<section class="panel calendar-panel">
+    <div class="calendar-toolbar"><button @onclick="PreviousWeek">← Previous</button><button @onclick="Today">Today</button><strong>@weekStart.ToString("MMM d") – @weekStart.AddDays(6).ToString("MMM d, yyyy")</strong><button @onclick="NextWeek">Next →</button></div>
+    <div class="calendar-grid">
+        <div class="corner"></div>@foreach (var day in Days) { <div class="day-heading"><strong>@day.ToString("ddd")</strong><span>@day.ToString("MMM d")</span></div> }
+        @foreach (var hour in Hours) {
+            <div class="time-label">@DateTime.Today.AddHours(hour).ToString("h tt")</div>
+            @foreach (var day in Days) {
+                <div class="calendar-slot" @ondragover:preventDefault @ondrop="() => Drop(day, hour)">
+                    @foreach (var ticket in TicketsAt(day, hour)) {
+                        <article class="calendar-event @(ticket.Status == TicketStatus.Completed ? "completed" : "")" draggable="@(ticket.Status != TicketStatus.Completed)" @ondragstart="() => BeginDrag(ticket.Id)">
+                            <strong>@ticket.TicketNumber</strong><span>@ticket.CustomerName</span><small>@ticket.Technician</small>
+                        </article>
+                    }
+                </div>
+            }
+        }
+    </div>
+</section>
+
+@code {
+    private IReadOnlyList<ServiceTicket> tickets = [];
+    private Guid? draggedTicketId;
+    private DateTime weekStart = StartOfWeek(DateTime.Today);
+    private IEnumerable<DateTime> Days => Enumerable.Range(0, 7).Select(offset => weekStart.AddDays(offset));
+    private static IEnumerable<int> Hours => Enumerable.Range(8, 10);
+    protected override async Task OnInitializedAsync() => tickets = await TicketRepository.GetAllAsync();
+    private IEnumerable<ServiceTicket> TicketsAt(DateTime day, int hour) => tickets.Where(x => x.ScheduledFor?.LocalDateTime.Date == day.Date && x.ScheduledFor?.LocalDateTime.Hour == hour);
+    private void BeginDrag(Guid id) => draggedTicketId = id;
+    private async Task Drop(DateTime day, int hour)
+    {
+        if (draggedTicketId is not Guid id) return;
+        var ticket = await TicketRepository.GetByIdAsync(id);
+        if (ticket is null || ticket.Status == TicketStatus.Completed) return;
+        ticket.Schedule(ticket.Technician ?? "Unassigned", new DateTimeOffset(day.AddHours(hour)));
+        await TicketRepository.UpdateAsync(ticket);
+        tickets = await TicketRepository.GetAllAsync();
+        draggedTicketId = null;
+    }
+    private void PreviousWeek() => weekStart = weekStart.AddDays(-7);
+    private void NextWeek() => weekStart = weekStart.AddDays(7);
+    private void Today() => weekStart = StartOfWeek(DateTime.Today);
+    private static DateTime StartOfWeek(DateTime date) => date.Date.AddDays(-((7 + (int)date.DayOfWeek - (int)DayOfWeek.Monday) % 7));
+}

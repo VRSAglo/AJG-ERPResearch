@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    
+      "Ajg.ErpResearch.Web": {
+        "commandName": "Project",
+        "launchBrowser": true,
+        "dotnetRunMessages": true,
+        "environmentVariables": {
+          "ASPNETCORE_ENVIRONMENT": "Development"
+        },
+        "applicationURL":  "http://localhost:5000"
+      }
+    }
+  }
